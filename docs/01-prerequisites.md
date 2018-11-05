@@ -2,11 +2,7 @@
 
 ## Amazon Web Services
 
-This tutorial leverages the [Amazon Web Services](https://aws.amazon.com) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up. [//]: # ([Sign up](https://cloud.google.com/free/) for $300 in free credits.
-
-[Estimated cost](https://cloud.google.com/products/calculator/#id=78df6ced-9c50-48f8-a670-bc5003f2ddaa) to run this tutorial: $0.22 per hour ($5.39 per day).)
-
-
+This tutorial leverages the [Amazon Web Services](https://aws.amazon.com) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up.
 
 > The compute resources required for this tutorial exceed the AWS free tier.
 
@@ -17,7 +13,7 @@ This tutorial leverages the [Amazon Web Services](https://aws.amazon.com) to str
 Follow the Amazon Web Services CLI [documentation](https://docs.aws.amazon.com/cli/latest/userguide/installing.html) to install and configure the `aws` command line utility.
 
 
-### Set a Default Compute Region and Zone
+### Configure Credentials and the AWS Region
 
 This tutorial assumes a default region has been configured. In this tutorial, we will be using us-east-1
 
