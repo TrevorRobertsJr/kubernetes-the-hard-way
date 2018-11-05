@@ -1,48 +1,33 @@
 # Prerequisites
 
-## Google Cloud Platform
+## Amazon Web Services
 
-This tutorial leverages the [Google Cloud Platform](https://cloud.google.com/) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up. [Sign up](https://cloud.google.com/free/) for $300 in free credits.
+This tutorial leverages the [Amazon Web Services](https://aws.amazon.com) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up. [//]: # ([Sign up](https://cloud.google.com/free/) for $300 in free credits.
 
-[Estimated cost](https://cloud.google.com/products/calculator/#id=78df6ced-9c50-48f8-a670-bc5003f2ddaa) to run this tutorial: $0.22 per hour ($5.39 per day).
+[Estimated cost](https://cloud.google.com/products/calculator/#id=78df6ced-9c50-48f8-a670-bc5003f2ddaa) to run this tutorial: $0.22 per hour ($5.39 per day).)
 
-> The compute resources required for this tutorial exceed the Google Cloud Platform free tier.
 
-## Google Cloud Platform SDK
 
-### Install the Google Cloud SDK
+> The compute resources required for this tutorial exceed the AWS free tier.
 
-Follow the Google Cloud SDK [documentation](https://cloud.google.com/sdk/) to install and configure the `gcloud` command line utility.
+## Amazon Web Services CLI
 
-Verify the Google Cloud SDK version is 218.0.0 or higher:
+### Install the Amazon Web Services CLI
 
-```
-gcloud version
-```
+Follow the Amazon Web Services CLI [documentation](https://docs.aws.amazon.com/cli/latest/userguide/installing.html) to install and configure the `aws` command line utility.
+
 
 ### Set a Default Compute Region and Zone
 
-This tutorial assumes a default compute region and zone have been configured.
+This tutorial assumes a default region has been configured. In this tutorial, we will be using us-east-1
 
-If you are using the `gcloud` command-line tool for the first time `init` is the easiest way to do this:
-
-```
-gcloud init
-```
-
-Otherwise set a default compute region:
+If you are using the `aws` command-line tool for the first time `configure` is the easiest way to do this:
 
 ```
-gcloud config set compute/region us-west1
+aws configure
 ```
 
-Set a default compute zone:
-
-```
-gcloud config set compute/zone us-west1-c
-```
-
-> Use the `gcloud compute zones list` command to view additional regions and zones.
+Consult the AWS [documentation] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) for further details on the CLI configuration.
 
 ## Running Commands in Parallel with tmux
 
