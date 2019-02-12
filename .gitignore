@@ -1,3 +1,4 @@
+.DS_Store
 admin-csr.json             
 admin-key.pem              
 admin.csr                  

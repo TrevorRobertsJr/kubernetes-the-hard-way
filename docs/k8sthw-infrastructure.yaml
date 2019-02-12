@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Kubernetes the Hard Way required infrastructure
+Parameters:
+  CorporateCidrIp:
+    Description: Your Company's CIDR IP (to restrict traffic to be authorized ONLY
+      from corporate office)
+    Type: String
+    Default: 0.0.0.0/0
+  LabKeyPair: 
+    Description: Amazon EC2 Key Pair
+    Type: "List<AWS::EC2::KeyPair::KeyName>"
+Mappings:
+  AWSInstanceType2Arch:
+    t2.small:
+      Arch: '64'
+    t2.medium:
+      Arch: '64'
+    m5.large:
+      Arch: '64'
+    m5.xlarge:
+      Arch: '64'
+    m5.2xlarge:
+      Arch: '64'
+    m5.4xlarge:
+      Arch: '64'
+    c5.large:
+      Arch: '64'
+    c5.xlarge:
+      Arch: '64'
+  AWSRegionArch2AMI:
+    us-east-1:
+      '64': ami-07073342279f98d28
+    us-west-2:
+      '64': ami-0e3e4660d8725dd31
+    us-west-1:
+      '64': ami-09a3ee98385ff6b68
+    eu-west-1:
+      '64': ami-0c21eb76a5574aa2f
+    ap-southeast-1:
+      '64': ami-033a3bd1e8ea825a5
+    ap-southeast-2:
+      '64': ami-0626846f14dbd80e5
+    ap-northeast-1:
+      '64': ami-0238fc6af6bba5241
+    sa-east-1:
+      '64': ami-0100acce7c30020c9
+Resources:
+# IAM Policy and Role
+  kubernetesRole: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies: 
+        - 
+          PolicyName: "root"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Sid: "Allow-EC2-Actions"
+                Effect: "Allow"
+                Action: "ec2:*"
+                Resource: "*"
+              - Sid: "Allow-ELB-Actions"
+                Effect: "Allow"
+                Action: "elasticloadbalancing:*"
+                Resource: "*"
+              - Sid: "Allow-Route53-Actions"
+                Effect: "Allow"
+                Action: "route53:*"
+                Resource: "*"
+              - Sid: "Allow-ECR-Actions"
+                Effect: "Allow"
+                Action: "ecr:*"
+                Resource: "*"
+  kubernetesInstanceProfile: 
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/"
+      Roles: 
+        - 
+          Ref: "kubernetesRole"
+
+# Create Network Resources
+  vpcworklab:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.240.0.0/16
+      InstanceTenancy: default
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: kubernetes
+  dhcpworklab:
+    Type: AWS::EC2::DHCPOptions
+    Properties:
+      DomainName: us-west-2.compute.internal
+      DomainNameServers:
+        - AmazonProvidedDNS
+      Tags:
+        - Key: Name
+          Value: kubernetes
+  dhcpassociationworklab:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    Properties: 
+      DhcpOptionsId: 
+        Ref: dhcpworklab
+      VpcId:
+        Ref: vpcworklab
+  igwworklab:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: kubernetes
+  gw1:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref 'vpcworklab'
+      InternetGatewayId: !Ref 'igwworklab'
+  subnetworklabexternala:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.240.0.0/24
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref 'vpcworklab'
+      Tags:
+        - Key: Name
+          Value: kubernetes-a
+  subnetworklabexternalb:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.240.1.0/24
+      AvailabilityZone: us-east-1b
+      VpcId: !Ref 'vpcworklab'
+      Tags:
+        - Key: Name
+          Value: kubernetes-b
+  subnetworklabexternalc:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.240.2.0/24
+      AvailabilityZone: us-east-1c
+      VpcId: !Ref 'vpcworklab'
+      Tags:
+        - Key: Name
+          Value: kubernetes-c
+  rtbworkexternal:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'vpcworklab'
+      Tags:
+        - Key: Name
+          Value: kubernetes
+  ExternalRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref 'rtbworkexternal'
+      GatewayId: !Ref 'igwworklab'
+    DependsOn: gw1
+  subnetroute1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref 'rtbworkexternal'
+      SubnetId: !Ref 'subnetworklabexternalb'
+  subnetroute2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref 'rtbworkexternal'
+      SubnetId: !Ref 'subnetworklabexternalc'
+  subnetroute3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref 'rtbworkexternal'
+      SubnetId: !Ref 'subnetworklabexternala'
+  ExternalSubnetAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref 'vpcworklab'
+  ExternalInSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'ExternalSubnetAcl'
+      RuleNumber: '32000'
+      Protocol: '-1'
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: '-1'
+        Type: '-1'
+      PortRange:
+        From: '1'
+        To: '65535'
+  ExternalOutSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'ExternalSubnetAcl'
+      RuleNumber: '32000'
+      Protocol: '-1'
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: '-1'
+        Type: '-1'
+      PortRange:
+        From: '1'
+        To: '65535'
+  ExternalSubnetAclAssociationa:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref 'subnetworklabexternala'
+      NetworkAclId: !Ref 'ExternalSubnetAcl'
+  ExternalSubnetAclAssociationb:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref 'subnetworklabexternalb'
+      NetworkAclId: !Ref 'ExternalSubnetAcl'
+  ExternalSubnetAclAssociationc:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref 'subnetworklabexternalc'
+      NetworkAclId: !Ref 'ExternalSubnetAcl'
+  sgmanagement:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow remote management
+      VpcId: !Ref 'vpcworklab'
+  ingressSSH:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'sgmanagement'
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      CidrIp: !Ref 'CorporateCidrIp'
+  ingressRDP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'sgmanagement'
+      IpProtocol: tcp
+      FromPort: '3389'
+      ToPort: '3389'
+      CidrIp: !Ref 'CorporateCidrIp'
+  egress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref 'sgmanagement'
+      IpProtocol: '-1'
+      CidrIp: 0.0.0.0/0
+
+# Create SSH Key
+
+# Create Instances
+  controller0:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref kubernetesInstanceProfile
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: controller0
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.10"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
