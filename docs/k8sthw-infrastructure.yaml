@@ -62,23 +62,23 @@ Resources:
       Path: "/"
       Policies: 
         - 
-          PolicyName: "root"
+          PolicyName: "kubernetesPolicy"
           PolicyDocument: 
             Version: "2012-10-17"
             Statement: 
-              - Sid: "Allow-EC2-Actions"
+              - Sid: "AllowEC2Actions"
                 Effect: "Allow"
                 Action: "ec2:*"
                 Resource: "*"
-              - Sid: "Allow-ELB-Actions"
+              - Sid: "AllowELBActions"
                 Effect: "Allow"
                 Action: "elasticloadbalancing:*"
                 Resource: "*"
-              - Sid: "Allow-Route53-Actions"
+              - Sid: "AllowRoute53Actions"
                 Effect: "Allow"
                 Action: "route53:*"
                 Resource: "*"
-              - Sid: "Allow-ECR-Actions"
+              - Sid: "AllowECRActions"
                 Effect: "Allow"
                 Action: "ecr:*"
                 Resource: "*"
@@ -267,7 +267,7 @@ Resources:
   controller0:
     Type: AWS::EC2::Instance
     Properties: 
-      IamInstanceProfile: !Ref kubernetesInstanceProfile
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
       InstanceType: t3.large
       KeyName: !Select [ "0", !Ref LabKeyPair ]
       SourceDestCheck: false
@@ -288,6 +288,35 @@ Resources:
       NetworkInterfaces: 
         - AssociatePublicIpAddress: "true"
           PrivateIpAddress: "10.240.0.10"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
+  controller1:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: controller1
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.11"
           DeviceIndex: "0"
           GroupSet: 
             - Ref: "sgmanagement"
