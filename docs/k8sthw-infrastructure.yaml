@@ -254,6 +254,20 @@ Resources:
       FromPort: '3389'
       ToPort: '3389'
       CidrIp: !Ref 'CorporateCidrIp'
+  ingressHTTPS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'sgmanagement'
+      IpProtocol: tcp
+      FromPort: '6443'
+      ToPort: '6443'
+      CidrIp: !Ref 'CorporateCidrIp'
+  ingressK8s:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'sgmanagement'
+      IpProtocol: '-1'
+      SourceSecurityGroupId: !Ref 'sgmanagement'
   egress1:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -264,6 +278,7 @@ Resources:
 # Create SSH Key
 
 # Create Instances
+# Kubernetes Controllers
   controller0:
     Type: AWS::EC2::Instance
     Properties: 
@@ -317,6 +332,124 @@ Resources:
       NetworkInterfaces: 
         - AssociatePublicIpAddress: "true"
           PrivateIpAddress: "10.240.0.11"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
+  controller2:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: controller2
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.12"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
+
+# Kubernetes Workers
+  worker0:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: worker0
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.20"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
+  worker1:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: worker1
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.21"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "sgmanagement"
+          SubnetId: 
+            Ref: "subnetworklabexternala"
+  worker2:
+    Type: AWS::EC2::Instance
+    Properties: 
+      IamInstanceProfile: !Ref "kubernetesInstanceProfile"
+      InstanceType: t3.large
+      KeyName: !Select [ "0", !Ref LabKeyPair ]
+      SourceDestCheck: false
+      Tags: 
+        - Key: Name
+          Value: worker2
+      ImageId: 
+        Fn::FindInMap: 
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - '64'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeType : "gp2"
+            VolumeSize: 50
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          PrivateIpAddress: "10.240.0.22"
           DeviceIndex: "0"
           GroupSet: 
             - Ref: "sgmanagement"

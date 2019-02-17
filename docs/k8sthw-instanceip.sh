@@ -1,0 +1,6 @@
+export controller0=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=controller0" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+export controller1=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=controller1" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+export controller2=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=controller2" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+export worker0=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker0" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+export worker1=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker1" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
+export worker2=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker2" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Association.PublicIp')
