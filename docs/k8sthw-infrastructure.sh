@@ -271,7 +271,22 @@ aws ec2 modify-instance-attribute \
 aws ec2 create-tags \
   --resources ${WORKER_2_INSTANCE_ID} \
   --tags Key=Name,Value=worker2
+# NEW Clean-Up:
+EIP=$(aws ec2 allocate-address --domain vpc |jq -r '.AllocationId')
+NLB=$(aws elbv2 create-load-balancer --name my-load-balancer --type network --subnet-mappings SubnetId=${SUBNET_ID},AllocationId=${EIP})
+aws ec2 create-tags \
+  --resources ${NLB} \
+  --tags Key=Name,Value=kubernetes-the-hard-way
 
+
+
+
+    "AllocationId": "eipalloc-01a3b5e232fd22866",
+    "PublicIpv4Pool": "amazon",
+    "Domain": "vpc"
+}
+8c8590100a7f:crt trevorr$ aws ec2 allocate-address --domain vpc |jq -r '.AllocationId'
+eipalloc-067c6886a4c36de88
 
 #    aws ec2 describe-instances --filters "Name=tag:Name,Values=etcd0" | jq -r '.Reservations[].Instances[].PublicIpAddress'\
 #

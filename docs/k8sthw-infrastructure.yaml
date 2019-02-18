@@ -91,6 +91,20 @@ Resources:
           Ref: "kubernetesRole"
 
 # Create Network Resources
+  eip:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: "vpc"
+  nlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SubnetMappings:
+        - AllocationId: !GetAtt eip.AllocationId
+          SubnetId: !Ref "subnetworklabexternala"
+      Tags:
+        - Key: 'Name'
+          Value: 'kubernetes the hard way'
+      Type: 'network'
   vpcworklab:
     Type: AWS::EC2::VPC
     Properties:
