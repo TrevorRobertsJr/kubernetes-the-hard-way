@@ -16,3 +16,5 @@ export controller2prv=$(aws ec2 describe-instances --filters "Name=tag:Name,Valu
 export worker0prv=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker0" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress')
 export worker1prv=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker1" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress')
 export worker2prv=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=worker2" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress')
+#TODO automated recovery of eip by tagging and jq or cloudformation export
+export KUBERNETES_PUBLIC_ADDRESS=3.82.89.203

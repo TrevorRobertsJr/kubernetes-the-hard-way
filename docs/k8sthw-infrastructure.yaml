@@ -105,6 +105,33 @@ Resources:
         - Key: 'Name'
           Value: 'kubernetes the hard way'
       Type: 'network'
+  nlbtargetgroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPath: "/healthz"
+      HealthCheckProtocol: "HTTP"
+      HealthCheckPort: "80"
+      Name: "k8sthw-targets"
+      Port: 6443
+      Protocol: "TLS"
+      Tags:
+        - Key: Name
+          Value: kubernetes
+      Targets:
+        - Id: !Ref 'controller0'
+        - Id: !Ref 'controller1'
+        - Id: !Ref 'controller2'
+      TargetType: "instance"
+      VpcId: !Ref 'vpcworklab'
+  nlblistener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref nlbtargetgroup
+      LoadBalancerArn: !Ref nlb
+      Port: '6443'
+      Protocol: TCP
   vpcworklab:
     Type: AWS::EC2::VPC
     Properties:
